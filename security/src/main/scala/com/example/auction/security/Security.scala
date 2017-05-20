@@ -20,7 +20,7 @@ object UserPrincipal {
     override def serviceName: String = servicePrincipal.serviceName
   }
 
-  def of(userId: UUID, principal: Option[Principal]) = {
+  def of(userId: UUID, principal: Option[Principal]): UserPrincipal = {
     principal match {
       case Some(servicePrincipal: ServicePrincipal) =>
         UserPrincipal.UserServicePrincipal(userId, servicePrincipal)
@@ -31,14 +31,14 @@ object UserPrincipal {
 }
 
 object SecurityHeaderFilter extends HeaderFilter {
-  override def transformClientRequest(request: RequestHeader) = {
+  override def transformClientRequest(request: RequestHeader): RequestHeader = {
     request.principal match {
       case Some(userPrincipal: UserPrincipal) => request.withHeader("User-Id", userPrincipal.userId.toString)
       case other => request
     }
   }
 
-  override def transformServerRequest(request: RequestHeader) = {
+  override def transformServerRequest(request: RequestHeader): RequestHeader = {
     request.getHeader("User-Id") match {
       case Some(userId) =>
         request.withPrincipal(UserPrincipal.of(UUID.fromString(userId), request.principal))
@@ -46,16 +46,16 @@ object SecurityHeaderFilter extends HeaderFilter {
     }
   }
 
-  override def transformServerResponse(response: ResponseHeader, request: RequestHeader) = response
+  override def transformServerResponse(response: ResponseHeader, request: RequestHeader): ResponseHeader = response
 
-  override def transformClientResponse(response: ResponseHeader, request: RequestHeader) = response
+  override def transformClientResponse(response: ResponseHeader, request: RequestHeader): ResponseHeader = response
 
-  lazy val Composed = HeaderFilter.composite(SecurityHeaderFilter, UserAgentHeaderFilter)
+  lazy val Composed: HeaderFilter = HeaderFilter.composite(SecurityHeaderFilter, UserAgentHeaderFilter)
 }
 
 object ServerSecurity {
 
-  def authenticated[Request, Response](serviceCall: UUID => ServerServiceCall[Request, Response]) =
+  def authenticated[Request, Response](serviceCall: UUID => ServerServiceCall[Request, Response]): ServerServiceCall[Request, Response] =
     ServerServiceCall.compose { requestHeader =>
       requestHeader.principal match {
         case Some(userPrincipal: UserPrincipal) =>

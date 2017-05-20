@@ -20,10 +20,10 @@ trait ItemComponents extends LagomServerComponents
   implicit def executionContext: ExecutionContext
   def environment: Environment
 
-  override lazy val lagomServer = LagomServer.forServices(
+  override lazy val lagomServer: LagomServer = LagomServer.forServices(
     bindService[ItemService].to(wire[ItemServiceImpl])
   )
-  lazy val itemRepository = wire[ItemRepository]
+  lazy val itemRepository: ItemRepository = wire[ItemRepository]
   lazy val jsonSerializerRegistry = ItemSerializerRegistry
 
   persistentEntityRegistry.register(wire[ItemEntity])
@@ -35,7 +35,7 @@ abstract class ItemApplication(context: LagomApplicationContext) extends LagomAp
   with AhcWSComponents
   with LagomKafkaComponents {
 
-  lazy val biddingService = serviceClient.implement[BiddingService]
+  lazy val biddingService: BiddingService = serviceClient.implement[BiddingService]
 
   wire[BiddingServiceSubscriber]
 }
@@ -47,7 +47,7 @@ class ItemApplicationLoader extends LagomApplicationLoader {
   override def load(context: LagomApplicationContext): LagomApplication = new ItemApplication(context) {
     override def serviceLocator: ServiceLocator = NoServiceLocator
   }
-  
+
   override def describeServices = List(
     readDescriptor[ItemService]
   )

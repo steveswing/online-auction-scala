@@ -22,7 +22,7 @@ case class Item(
   auctionEnd: Option[Instant],
   auctionWinner: Option[UUID]
 ) {
-  def safeId = id.getOrElse(UUID.randomUUID())
+  def safeId: UUID = id.getOrElse(UUID.randomUUID())
 }
 
 object Item {

@@ -12,3 +12,7 @@ bin
 .settings
 logs
 .idea
+*.ipr
+*.iml
+*.iws
+

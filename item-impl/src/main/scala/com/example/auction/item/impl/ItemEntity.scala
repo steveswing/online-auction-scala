@@ -5,7 +5,7 @@ import java.util.UUID
 
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
-import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag, PersistentEntity}
+import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventShards, AggregateEventTag, PersistentEntity}
 import play.api.libs.json.{Format, Json}
 import com.example.auction.utils.JsonFormats._
 
@@ -79,11 +79,11 @@ class ItemEntity extends PersistentEntity {
   private val cancelled = completed
 
 }
-  
+
 object ItemStatus extends Enumeration {
   val Created, Auction, Completed, Cancelled = Value
   type Status = Value
-  
+
   implicit val format: Format[Status] = enumFormat(ItemStatus)
 }
 
@@ -102,17 +102,17 @@ case class Item(
   auctionEnd: Option[Instant],
   auctionWinner: Option[UUID]
 ) {
-  
-  def start(startTime: Instant) = {
+
+  def start(startTime: Instant): Item = {
     assert(status == ItemStatus.Created)
     copy(
       status = ItemStatus.Auction,
-      auctionStart = Some(startTime), 
+      auctionStart = Some(startTime),
       auctionEnd = Some(startTime.plus(auctionDuration))
     )
   }
 
-  def end(winner: Option[UUID], price: Option[Int]) = {
+  def end(winner: Option[UUID], price: Option[Int]): Item = {
     assert(status == ItemStatus.Auction)
     copy(
       status = ItemStatus.Completed,
@@ -121,14 +121,14 @@ case class Item(
     )
   }
 
-  def updatePrice(price: Int) = {
+  def updatePrice(price: Int): Item = {
     assert(status == ItemStatus.Auction)
     copy(
       price = Some(price)
     )
   }
 
-  def cancel = {
+  def cancel: Item = {
     assert(status == ItemStatus.Auction || status == ItemStatus.Completed)
     copy(
       status = ItemStatus.Cancelled
@@ -147,11 +147,11 @@ case object GetItem extends ItemCommand with ReplyType[Option[Item]] {
 }
 
 case class CreateItem(item: Item) extends ItemCommand with ReplyType[Done]
-  
+
 object CreateItem {
   implicit val format: Format[CreateItem] = Json.format
 }
-  
+
 case class StartAuction(userId: UUID) extends ItemCommand with ReplyType[Done]
 
 object StartAuction {
@@ -176,7 +176,7 @@ sealed trait ItemEvent extends AggregateEvent[ItemEvent] {
 
 object ItemEvent {
   val NumShards = 4
-  val Tag = AggregateEventTag.sharded[ItemEvent](NumShards)
+  val Tag: AggregateEventShards[ItemEvent] = AggregateEventTag.sharded[ItemEvent](NumShards)
 }
 
 case class ItemCreated(item: Item) extends ItemEvent

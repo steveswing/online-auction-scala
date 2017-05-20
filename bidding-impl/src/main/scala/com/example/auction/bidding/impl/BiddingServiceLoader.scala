@@ -16,8 +16,8 @@ abstract class BiddingApplication(context: LagomApplicationContext) extends Lago
   with CassandraPersistenceComponents
   with LagomKafkaComponents {
 
-  lazy val itemService = serviceClient.implement[ItemService]
-  override lazy val lagomServer = LagomServer.forServices(
+  lazy val itemService: ItemService = serviceClient.implement[ItemService]
+  override lazy val lagomServer: LagomServer = LagomServer.forServices(
     bindService[BiddingService].to(wire[BiddingServiceImpl])
   )
   override lazy val jsonSerializerRegistry = BiddingSerializerRegistry
