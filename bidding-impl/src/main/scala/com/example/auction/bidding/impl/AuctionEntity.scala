@@ -247,8 +247,8 @@ object Bid {
   * The auction state.
   */
 case class AuctionState(auction: Option[Auction], status: AuctionStatus.Status, biddingHistory: Seq[Bid]) {
-  def withStatus (status: AuctionStatus.Status) = copy(status = status)
-  def bid(bid: Bid) = if (biddingHistory.headOption.exists(_.bidder == bid.bidder)) {
+  def withStatus (status: AuctionStatus.Status): AuctionState = copy(status = status)
+  def bid(bid: Bid): AuctionState = if (biddingHistory.headOption.exists(_.bidder == bid.bidder)) {
     copy(biddingHistory = bid +: biddingHistory.tail)
   } else {
     copy(biddingHistory = bid +: biddingHistory)

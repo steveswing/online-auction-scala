@@ -7,7 +7,8 @@ import com.datastax.driver.core._
 import com.example.auction.item.api.ItemSummary
 import com.example.auction.item.api
 import com.example.auction.utils.PaginatedSequence
-import com.lightbend.lagom.scaladsl.persistence.ReadSideProcessor
+import com.lightbend.lagom.scaladsl.persistence.ReadSideProcessor.ReadSideHandler
+import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraReadSide, CassandraSession}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -67,7 +68,7 @@ private[impl] class ItemEventProcessor(session: CassandraSession, readSide: Cass
   private var insertItemSummaryByCreatorStatement: PreparedStatement = null
   private var updateItemSummaryStatusStatement: PreparedStatement = null
 
-  def buildHandler = {
+  def buildHandler: ReadSideHandler[ItemEvent] = {
     readSide.builder[ItemEvent]("itemEventOffset")
       .setGlobalPrepare(createTables)
       .setPrepare(_ => prepareStatements())
@@ -77,7 +78,7 @@ private[impl] class ItemEventProcessor(session: CassandraSession, readSide: Cass
       .build
   }
 
-  def aggregateTags = ItemEvent.Tag.allTags
+  def aggregateTags: Set[AggregateEventTag[ItemEvent]] = ItemEvent.Tag.allTags
 
   private def createTables() = {
     for {

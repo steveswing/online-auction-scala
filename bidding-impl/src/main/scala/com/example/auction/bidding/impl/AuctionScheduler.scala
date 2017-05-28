@@ -7,8 +7,9 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.datastax.driver.core.PreparedStatement
+import com.lightbend.lagom.scaladsl.persistence.ReadSideProcessor.ReadSideHandler
 import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraReadSide, CassandraSession}
-import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry, ReadSideProcessor}
+import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, PersistentEntityRegistry, ReadSideProcessor}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,7 +24,7 @@ class AuctionSchedulerProcessor(readSide: CassandraReadSide, session: CassandraS
   private var insertAuctionStatement: PreparedStatement = _
   private var deleteAuctionStatement: PreparedStatement = _
 
-  def buildHandler = {
+  def buildHandler: ReadSideHandler[AuctionEvent] = {
     readSide.builder[AuctionEvent]("auctionSchedulerOffset")
       .setGlobalPrepare(createTable)
       .setPrepare { tag =>
@@ -71,13 +72,13 @@ class AuctionSchedulerProcessor(readSide: CassandraReadSide, session: CassandraS
     Future.successful(List(deleteAuctionStatement.bind(UUID.fromString(event.entityId))))
   }
 
-  def aggregateTags = AuctionEvent.Tag.allTags
+  def aggregateTags: Set[AggregateEventTag[AuctionEvent]] = AuctionEvent.Tag.allTags
 }
 
 class AuctionScheduler(session: CassandraSession, system: ActorSystem, registry: PersistentEntityRegistry)(implicit val mat: Materializer, ec: ExecutionContext) {
   private val log = LoggerFactory.getLogger(classOf[AuctionScheduler])
 
-  val finishBiddingDelay = system.settings.config.getDuration("auctionSchedulerDelay", TimeUnit.MILLISECONDS).milliseconds
+  val finishBiddingDelay: FiniteDuration = system.settings.config.getDuration("auctionSchedulerDelay", TimeUnit.MILLISECONDS).milliseconds
   system.scheduler.schedule(finishBiddingDelay, finishBiddingDelay) {
     checkFinishBidding()
   }

@@ -7,7 +7,7 @@ import com.example.auction.security.SecurityHeaderFilter
 import com.example.auction.utils.PaginatedSequence
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.Method
-import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
+import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
 
 trait ItemService extends Service {
   /**
@@ -49,7 +49,7 @@ trait ItemService extends Service {
     */
   def itemEvents: Topic[ItemEvent]
 
-  final override def descriptor = {
+  final override def descriptor: Descriptor = {
     import Service._
 
     named("item").withCalls(
