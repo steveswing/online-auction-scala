@@ -1,12 +1,3 @@
-lazy val root = (project in file("."))
-  .settings(name := "online-auction-scala")
-  .aggregate(itemApi, itemImpl,
-    biddingApi, biddingImpl,
-    userApi, userImpl,
-    searchApi, searchImpl,
-    webGateway)
-  .settings(commonSettings: _*)
-
 organization in ThisBuild := "com.example"
 
 // the Scala version that will be used for cross-compiled libraries
@@ -192,3 +183,11 @@ lagomCassandraCleanOnStart in ThisBuild := false
 // will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
 lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
 
+lazy val root = (project in file("."))
+  .settings(name := "online-auction-scala")
+  .aggregate(itemApi, itemImpl,
+    biddingApi, biddingImpl,
+    userApi, userImpl,
+    searchApi, searchImpl,
+    webGateway)
+  .settings(commonSettings: _*)
